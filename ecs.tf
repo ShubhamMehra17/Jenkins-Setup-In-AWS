@@ -1,4 +1,3 @@
-
 # ECS Cluster
 resource "aws_ecs_cluster" "jenkins_cluster" {
   name = "jenkins-cluster"
@@ -9,6 +8,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   name = "ecsTaskExecutionRole"
 
   assume_role_policy = jsonencode({
+    Version = "2012-10-17"
     Statement = [{
       Effect = "Allow"
       Principal = {
@@ -19,27 +19,50 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 }
 
-# Attach Permissions to IAM Role
+# IAM Role for ECS Task Permissions
+resource "aws_iam_role" "ecs_task_role" {
+  name = "ecsTaskRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+# Attach Permissions to IAM Roles
 resource "aws_iam_policy_attachment" "ecs_task_execution_attach" {
   name       = "ecsTaskExecutionAttach"
   roles      = [aws_iam_role.ecs_task_execution_role.name]
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "aws_iam_role_policy_attachment" "ecs_task_role_attach" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# ECS Task Definition
 resource "aws_ecs_task_definition" "jenkins_task" {
   family                   = "jenkins-task"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  memory                   = "4096"
-  cpu                      = "2048"
+  memory                   = "8192"
+  cpu                      = "4096"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
 
   container_definitions = jsonencode([
     {
       name      = "jenkins"
       image     = "jenkins/jenkins:lts"
-      memory    = 2048
-      cpu       = 1024
+      memory    = 4096
+      cpu       = 2048
       essential = true
       portMappings = [{
         containerPort = 8080
@@ -67,7 +90,7 @@ resource "aws_ecs_task_definition" "jenkins_task" {
   }
 }
 
-
+# ECS Service
 resource "aws_ecs_service" "jenkins_service" {
   name            = "jenkins-service"
   cluster         = aws_ecs_cluster.jenkins_cluster.id
@@ -86,5 +109,6 @@ resource "aws_ecs_service" "jenkins_service" {
     container_name   = "jenkins"
     container_port   = 8080
   }
+  enable_execute_command   = true
+  health_check_grace_period_seconds = 300
 }
-
