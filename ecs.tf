@@ -19,6 +19,11 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 }
 
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_logging" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+}
+
 # IAM Role for ECS Task Permissions
 resource "aws_iam_role" "ecs_task_role" {
   name = "ecsTaskRole"
@@ -68,6 +73,13 @@ resource "aws_ecs_task_definition" "jenkins_task" {
         containerPort = 8080
         hostPort      = 8080
       }]
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:8080/login || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 120
+      }
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -110,5 +122,5 @@ resource "aws_ecs_service" "jenkins_service" {
     container_port   = 8080
   }
   enable_execute_command   = true
-  health_check_grace_period_seconds = 300
+  health_check_grace_period_seconds = 600
 }

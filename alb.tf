@@ -14,9 +14,9 @@ resource "aws_lb_target_group" "jenkins_tg" {
   target_type = "ip"
 
   health_check {
-    path                = "/"
-    interval            = 300  # Health check runs every 60 seconds
-    timeout             = 60  # Health check timeout increased to 30 seconds
+    path                = "/login"
+    interval            = 30  # Health check runs every 60 seconds
+    timeout             = 5  # Health check timeout increased to 30 seconds
     healthy_threshold   = 2   # Mark as healthy after 2 successful checks
     unhealthy_threshold = 5   # Mark as unhealthy after 5 failed checks
     matcher             = "200" # Expect HTTP 200 response
