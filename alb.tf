@@ -35,6 +35,7 @@ resource "aws_lb_listener" "jenkins_listener" {
 }
 
 resource "aws_security_group" "alb_sg" {
+  name = "jenkins-alb-sg"
   vpc_id = aws_vpc.jenkins_vpc.id
 
   ingress {

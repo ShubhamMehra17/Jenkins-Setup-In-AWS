@@ -5,6 +5,9 @@ provider "aws" {
 # VPC Creation
 resource "aws_vpc" "jenkins_vpc" {
   cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "jenkins-vpc"
+  }
 }
 
 # Public Subnets
@@ -13,6 +16,10 @@ resource "aws_subnet" "public_subnet_1" {
   cidr_block        = "10.0.1.0/24"
   map_public_ip_on_launch = true
   availability_zone = "ap-south-1a"
+
+  tags = {
+    Name = "jenkins-subnet1"
+  }
 }
 
 resource "aws_subnet" "public_subnet_2" {
@@ -20,6 +27,10 @@ resource "aws_subnet" "public_subnet_2" {
   cidr_block        = "10.0.2.0/24"
   map_public_ip_on_launch = true
   availability_zone = "ap-south-1b"
+
+  tags = {
+    Name = "jenkins-subnet2"
+  }
 }
 
 # Internet Gateway
@@ -51,6 +62,8 @@ resource "aws_route_table_association" "subnet_association_2" {
 
 # Security Group for Jenkins
 resource "aws_security_group" "jenkins_sg" {
+  name = "jenkins-sg"
+  description = "Allow SSH and Jenkins traffic"
   vpc_id = aws_vpc.jenkins_vpc.id
 
   ingress {
@@ -65,6 +78,10 @@ resource "aws_security_group" "jenkins_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "jenkins-sg"
   }
 }
 
