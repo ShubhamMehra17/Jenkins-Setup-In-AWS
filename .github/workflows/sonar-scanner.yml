@@ -1,0 +1,34 @@
+name: SonarQube Scan
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Sonar packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+
+      - name: Run SonarScanner
+        uses: sonarsource/sonarcloud-github-action@v2
+        with:
+          host-url: "https://weaklier-intercolonially-desire.ngrok-free.dev"  
+          projectKey: "jenkins_project"           
+          projectName: "Jenkins Project Scanner"             
+          token: ${{ secrets.SONAR_TOKEN }}
