@@ -4,43 +4,20 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches: [ master ]
 
 jobs:
   sonar:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v3
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v2
         with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Cache Sonar packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-
-      - name: Install SonarScanner
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y unzip wget openjdk-17-jdk
-          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.12.0.43169-linux.zip
-          unzip sonar-scanner-cli-5.12.0.43169-linux.zip
-          echo "$PWD/sonar-scanner-5.12.0.43169-linux/bin" >> $GITHUB_PATH
-
-      - name: Run SonarScanner
+          projectBaseDir: .
         env:
-          SONAR_HOST_URL: "https://weaklier-intercolonially-desire.ngrok-free.dev"
-          SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner \
-            -Dsonar.projectKey=my_project_key \
-            -Dsonar.projectName="My Project" \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_LOGIN
+          SONAR_HOST_URL: https://weaklier-intercolonially-desire.ngrok-free.dev
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
