@@ -25,10 +25,21 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
 
+      - name: Install SonarScanner
+        run: |
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.13.0.36134-linux.zip
+          unzip sonar-scanner.zip
+          export PATH=$PATH:$PWD/sonar-scanner-5.13.0.36134-linux/bin
+          sonar-scanner --version
+
       - name: Run SonarScanner
-        uses: sonarsource/sonarcloud-github-action@v2
-        with:
-          host-url: "https://weaklier-intercolonially-desire.ngrok-free.dev"  
-          projectKey: "jenkins_project"           
-          projectName: "Jenkins Project Scanner"             
-          token: ${{ secrets.SONAR_TOKEN }}
+        env:
+          SONAR_HOST_URL: "https://weaklier-intercolonially-desire.ngrok-free.dev"
+          SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=my_project_key \
+            -Dsonar.projectName="My Project" \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_LOGIN
