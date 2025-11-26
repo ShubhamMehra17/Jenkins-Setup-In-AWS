@@ -1,6 +1,6 @@
 FROM jenkins/inbound-agent:jdk11
 
-# Noninteractive mode
+USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
 # -------------------------------------------------------
@@ -16,23 +16,20 @@ RUN apt-get update && \
         git \
         jq \
         make \
-        apt-transport-https \
         gnupg \
-        software-properties-common \
-        openjdk-11-jdk \
-        sudo && \
-    apt-get clean
+        sudo \
+        openjdk-11-jdk && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # -------------------------------------------------------
 # Docker CLI
 # -------------------------------------------------------
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker.gpg && \
-    echo \
-    "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] \
-    https://download.docker.com/linux/ubuntu \
-    $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list && \
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
+        > /etc/apt/sources.list.d/docker.list && \
     apt-get update && \
-    apt-get install -y docker-ce-cli
+    apt-get install -y docker-ce-cli && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # -------------------------------------------------------
 # AWS CLI v2
@@ -58,7 +55,7 @@ RUN wget https://releases.hashicorp.com/terraform/1.6.6/terraform_1.6.6_linux_am
     rm terraform_1.6.6_linux_amd64.zip
 
 # -------------------------------------------------------
-# Trivy (universal installer – always works)
+# Trivy
 # -------------------------------------------------------
 RUN wget https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh && \
     chmod +x install.sh && \
@@ -66,7 +63,7 @@ RUN wget https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/insta
     rm install.sh
 
 # -------------------------------------------------------
-# OWASP Dependency Check (preinstalled)
+# OWASP Dependency Check
 # -------------------------------------------------------
 ENV DC_VERSION=10.0.3
 RUN mkdir -p /opt/owasp && \
@@ -74,22 +71,12 @@ RUN mkdir -p /opt/owasp && \
     unzip dependency-check-${DC_VERSION}-release.zip -d /opt/owasp/ && \
     mv /opt/owasp/dependency-check /opt/dependency-check && \
     rm dependency-check-${DC_VERSION}-release.zip
-
 ENV PATH="/opt/dependency-check/bin:${PATH}"
 
 # -------------------------------------------------------
-# Jenkins agent
+# Permissions
 # -------------------------------------------------------
-RUN useradd -m -d /home/jenkins -s /bin/bash jenkins && \
-    usermod -aG sudo jenkins && \
-    echo "jenkins ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN usermod -aG sudo jenkins
 
 USER jenkins
 WORKDIR /home/jenkins
-
-# Java is already installed for JNLP agent & OWASP
-
-# -------------------------------------------------------
-# Final
-# -------------------------------------------------------
-CMD ["bash"]
