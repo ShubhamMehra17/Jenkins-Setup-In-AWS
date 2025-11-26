@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM jenkins/inbound-agent:jdk11
 
 # Noninteractive mode
 ENV DEBIAN_FRONTEND=noninteractive
