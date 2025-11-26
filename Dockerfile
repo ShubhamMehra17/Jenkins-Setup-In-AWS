@@ -96,7 +96,7 @@ WORKDIR /home/jenkins
 # Jenkins Remoting Agent (JNLP)
 # -------------------------------------------------------
 RUN wget -O /home/jenkins/agent.jar \
-    https://repo.jenkins-ci.org/public/org/jenkins-ci/main/remoting/3107/remoting-3107.jar
+    https://repo.jenkins-ci.org/public/org/jenkins-ci/main/agent/agent.jar
 
 # -------------------------------------------------------
 # Correct entrypoint for Jenkins ECS agent
