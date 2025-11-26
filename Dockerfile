@@ -92,14 +92,11 @@ RUN useradd -m -d /home/jenkins -s /bin/bash jenkins && \
 USER jenkins
 WORKDIR /home/jenkins
 
-# -------------------------------------------------------
-# Jenkins Remoting Agent (JNLP)
-# -------------------------------------------------------
 RUN wget -O /home/jenkins/agent.jar \
-    https://repo.jenkins-ci.org/public/org/jenkins-ci/main/agent/agent.jar
+    http://jenkins-alb-923766778.ap-south-1.elb.amazonaws.com/jnlpJars/agent.jar
 
-# -------------------------------------------------------
-# Correct entrypoint for Jenkins ECS agent
-# (Jenkins ECS plugin passes -url -secret -name)
-# -------------------------------------------------------
+# -------------------------
+# Entry point for ECS agent
+# ECS plugin injects -url, -secret, -name
+# -------------------------
 ENTRYPOINT ["java", "-jar", "/home/jenkins/agent.jar"]
