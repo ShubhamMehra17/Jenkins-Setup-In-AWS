@@ -14,10 +14,14 @@ RUN apt-get update && \
     unzip awscliv2.zip && \
     ./aws/install
 
-# Install Trivy
-RUN apt-get install -y wget && \
-    wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.49.1_Linux-64bit.deb && \
-    dpkg -i trivy_0.49.1_Linux-64bit.deb
+# Install Trivy (Official repo method – no failures)
+RUN apt-get update && \
+    apt-get install -y wget apt-transport-https gnupg lsb-release && \
+    wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor -o /usr/share/keyrings/trivy.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" \
+        > /etc/apt/sources.list.d/trivy.list && \
+    apt-get update && \
+    apt-get install -y trivy
 
 # Install OWASP dependency-check
 RUN mkdir /opt/owasp && \
